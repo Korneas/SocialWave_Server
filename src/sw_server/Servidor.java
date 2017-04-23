@@ -12,10 +12,8 @@ public class Servidor extends Observable implements Observer, Runnable {
 	private ServerSocket sS;
 	private boolean life;
 	private ArrayList<Control> users;
-	private final String GROUP_ADDRESS;
 
-	public Servidor(String address) {
-		this.GROUP_ADDRESS = address;
+	public Servidor() {
 
 		life = true;
 		users = new ArrayList<Control>();
