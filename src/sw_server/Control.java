@@ -10,15 +10,22 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Observer;
+
+import serial.Confirmacion;
+import serial.Usuario;
+import serial.Validacion;
 
 public class Control implements Runnable {
 	private Socket s;
 	private Observer boss;
+	private int id;
 
-	public Control(Socket s, Observer boss) {
+	public Control(Socket s, Observer boss, int id) {
 		this.s = s;
 		this.boss = boss;
+		this.id = id;
 		new Thread(this).start();
 	}
 
@@ -49,9 +56,64 @@ public class Control implements Runnable {
 
 	}
 
+	private void clasificar(Object o) {
+		if (o instanceof Usuario) {
+			ArrayList<Usuario> users = DatabaseManager.getInstance().getUsuarios();
+			Usuario u = (Usuario) o;
+			int totalUsers = 0;
+
+			for (int i = 0; i < users.size(); i++) {
+				if (!users.get(i).getApodo().contentEquals(u.getApodo())) {
+					totalUsers++;
+				}
+			}
+
+			if (totalUsers == users.size()) {
+				try {
+					enviar(new Validacion(false, "registro"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else {
+				try {
+					enviar(new Validacion(true, "registro"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+		} else if (o instanceof Confirmacion) {
+			ArrayList<Usuario> users = DatabaseManager.getInstance().getUsuarios();
+			Confirmacion c = (Confirmacion) o;
+			boolean exist = false;
+
+			for (int i = 0; i < users.size(); i++) {
+				if (users.get(i).getApodo().contentEquals(c.getName())
+						&& users.get(i).getPass().contentEquals(c.getPass())) {
+					exist = true;
+				}
+			}
+
+			if (exist) {
+				try {
+					enviar(new Validacion(true, "log"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else {
+				try {
+					enviar(new Validacion(false, "log"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	public void recibir() throws IOException, ClassNotFoundException {
 		ObjectInputStream in = new ObjectInputStream(s.getInputStream());
 		Object recibido = in.readObject();
+		clasificar(recibido);
 		boss.update(null, recibido);
 	}
 
@@ -126,6 +188,14 @@ public class Control implements Runnable {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 
 }

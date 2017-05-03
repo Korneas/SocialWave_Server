@@ -26,4 +26,10 @@ public class MainServer extends PApplet{
 		background(0);
 		log.ejecutar();
 	}
+	
+	@Override
+	public void exit() {
+		log.exit();
+		super.exit();
+	}
 }

@@ -18,6 +18,7 @@ public class DatabaseManager {
 
 	private XML data;
 	private File fl;
+	private static DatabaseManager ref;
 
 	private ArrayList<Post> posts;
 	private ArrayList<Usuario> users;
@@ -33,6 +34,7 @@ public class DatabaseManager {
 		comment = new ArrayList<Comentario>();
 
 		if (fl.exists() && fl.isFile()) {
+			System.out.println("Archivo .xml cargado");
 			try {
 				data = new XML(fl);
 			} catch (IOException e) {
@@ -43,9 +45,13 @@ public class DatabaseManager {
 				e.printStackTrace();
 			}
 		} else {
+			System.out.println("Achivo .xml creado");
 			try {
-				data = XML.parse(
-						"<usuarios></usuarios>\n<posteado></<posteado>\n<comentarios></comentarios>\n<waves></waves>");
+				data = XML.parse("<information></information>");
+				data.addChild("usuarios");
+				data.addChild("comentarios");
+				data.addChild("waves");
+				data.addChild("posts");
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (ParserConfigurationException e) {
@@ -54,6 +60,13 @@ public class DatabaseManager {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public static DatabaseManager getInstance() {
+		if (ref == null) {
+			ref = new DatabaseManager("data/info.xml");
+		}
+		return ref;
 	}
 
 	public void agregar(Object o) {
@@ -102,6 +115,22 @@ public class DatabaseManager {
 
 	public void guardar() {
 		data.save(fl);
+	}
+
+	public ArrayList<Usuario> getUsuarios() {
+		return users;
+	}
+
+	public ArrayList<Post> getPosts() {
+		return posts;
+	}
+
+	public ArrayList<Wave> getWaves() {
+		return waves;
+	}
+
+	public ArrayList<Comentario> getComment() {
+		return comment;
 	}
 
 }
