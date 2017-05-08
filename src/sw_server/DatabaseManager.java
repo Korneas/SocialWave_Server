@@ -26,6 +26,10 @@ public class DatabaseManager {
 	private ArrayList<Wave> waves;
 	private ArrayList<Comentario> comment;
 
+	/**
+	 * Constructor del DatabaseManager con el que se carga el archivo .xml y si este no existe entonces se crea
+	 * @param ruta
+	 */
 	public DatabaseManager(String ruta) {
 		fl = new File(ruta);
 
@@ -63,6 +67,10 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Metodo para el uso del patro Singleton
+	 * @return
+	 */
 	public static DatabaseManager getInstance() {
 		if (ref == null) {
 			ref = new DatabaseManager("data/info.xml");
@@ -70,7 +78,11 @@ public class DatabaseManager {
 		return ref;
 	}
 
-	public void agregar(Object o) {
+	/**
+	 * Metodo para agregar objetos tantos al ArrayList de estos como a el archivo .xml
+	 * @param o
+	 */
+	public synchronized void agregar(Object o) {
 		if (o instanceof Comentario) {
 
 			XML com = data.getChild("comentarios");
@@ -162,7 +174,11 @@ public class DatabaseManager {
 		data.save(fl);
 	}
 
-	public ArrayList<Usuario> getUsuarios() {
+	/**
+	 * Se buscan en el xml los usuarios registrados para cargarlos al arraylist
+	 * @return
+	 */
+	public synchronized ArrayList<Usuario> getUsuarios() {
 		XML usuarios = data.getChild("usuarios");
 		XML[] users_all = usuarios.getChildren("user");
 

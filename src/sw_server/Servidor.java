@@ -28,14 +28,11 @@ public class Servidor extends Observable implements Observer, Runnable {
 		}
 	}
 
-	public void enviar(Object o, int controlNum) {
-
-	}
-
 	@Override
 	public void run() {
 		while (life) {
 			try {
+				//Se agregan usuarios cada vez que se conecta un cliente
 				System.out.println("Esperando...");
 				users.add(new Control(sS.accept(), this, users.size() + 1));
 				System.out.println("Nuevo usuario es: " + users.size());
@@ -55,14 +52,13 @@ public class Servidor extends Observable implements Observer, Runnable {
 			notifyObservers(arg);
 			clearChanged();
 		} else if (arg instanceof String) {
+			//Se elimina el usuario si el cliente se desconecta
 			String not = (String) arg;
 			if (not.contains("finConexion")) {
 				users.remove(o);
 				System.out.println("Clientes restantes: " + users.size());
 			}
 		}
-
-		// users.get(0).enviar(null);
 	}
 
 }

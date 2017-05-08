@@ -48,6 +48,7 @@ public class Logica implements Observer {
 
 	}
 
+	//Si se cierra la ventana se guarda el .xml
 	public void exit() {
 		DatabaseManager.getInstance().guardar();
 	}

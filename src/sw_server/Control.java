@@ -39,6 +39,7 @@ public class Control extends Observable implements Runnable {
 				recibir();
 				Thread.sleep(100);
 			} catch (IOException e) {
+				//Si se desconecta el cliente se envia la notifiacion al Observer de la flata de conexion
 				System.out.println("Problema con cliente " + id);
 				setChanged();
 				boss.update(this, "finConexion");
@@ -52,12 +53,21 @@ public class Control extends Observable implements Runnable {
 		}
 	}
 
+	/**
+	 * Metodo para enviar Objetos a el respectivo cliente
+	 * @param o
+	 * @throws IOException
+	 */
 	public void enviar(Object o) throws IOException {
 		ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
 		out.writeObject(o);
 		System.out.println("Servidor: Se envio: " + o.getClass());
 	}
 
+	/**
+	 * Metodo para enviar todos los post como actualizacion del Home
+	 * @throws IOException
+	 */
 	public void actualizar() throws IOException {
 		ArrayList<Post> post_all = DatabaseManager.getInstance().getPosts();
 		ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
@@ -65,6 +75,11 @@ public class Control extends Observable implements Runnable {
 		System.out.println("Servidor: Se actualizo el home | Numero de posts: "+post_all.size());
 	}
 
+	/**
+	 * Metodo para clasificar el Object recibido y decidir que acciones tomar con sus respectivos valores
+	 * como su adicion al .xml y el confirmar inormacion enviada por el usuario
+	 * @param o
+	 */
 	private void clasificar(Object o) {
 		if (o instanceof Usuario) {
 			ArrayList<Usuario> users = DatabaseManager.getInstance().getUsuarios();
@@ -144,6 +159,11 @@ public class Control extends Observable implements Runnable {
 		}
 	}
 
+	/**
+	 * Metodo para recibir objetos enviados por el cliente
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	public void recibir() throws IOException, ClassNotFoundException {
 		ObjectInputStream in = new ObjectInputStream(s.getInputStream());
 		Object recibido = in.readObject();
@@ -152,6 +172,10 @@ public class Control extends Observable implements Runnable {
 		boss.update(null, recibido);
 	}
 
+	/**
+	 * Metodo para recibir los archivos que tiene el post como imagenes o audio
+	 * @param in
+	 */
 	private void recibirArchivos(Post in) {
 		String nombre = in.getAutor() + "_" + in.getName();
 		byte[] buffer = in.getFile();
@@ -163,6 +187,13 @@ public class Control extends Observable implements Runnable {
 		}
 	}
 
+	/**
+	 * Metodo para guardar el archivo en el servidor en su carpeta dataGuardada
+	 * @param name
+	 * @param buffer
+	 * @param tipo
+	 * @throws IOException
+	 */
 	private void guardarArchivo(String name, byte[] buffer, int tipo) throws IOException {
 		String extension = "";
 		String adjunto = "";
