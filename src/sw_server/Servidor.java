@@ -27,9 +27,9 @@ public class Servidor extends Observable implements Observer, Runnable {
 			e.printStackTrace();
 		}
 	}
-	
-	public void enviar(Object o,int controlNum){
-		
+
+	public void enviar(Object o, int controlNum) {
+
 	}
 
 	@Override
@@ -50,11 +50,19 @@ public class Servidor extends Observable implements Observer, Runnable {
 
 	@Override
 	public void update(Observable o, Object arg) {
-		setChanged();
-		notifyObservers(arg);
-		clearChanged();
-		
-//		users.get(0).enviar(null);
+		if (!(arg instanceof String)) {
+			setChanged();
+			notifyObservers(arg);
+			clearChanged();
+		} else if (arg instanceof String) {
+			String not = (String) arg;
+			if (not.contains("finConexion")) {
+				users.remove(o);
+				System.out.println("Clientes restantes: " + users.size());
+			}
+		}
+
+		// users.get(0).enviar(null);
 	}
 
 }

@@ -1,6 +1,7 @@
 package sw_server;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -90,6 +91,50 @@ public class DatabaseManager {
 
 		} else if (o instanceof Post) {
 
+			XML us = data.getChild("posts");
+
+			Post p = (Post) o;
+
+			String autor = p.getAutor();
+			String msg = p.getMsg();
+			int tipo = p.getTipo();
+
+			String ruta = "";
+			String adjunto = "";
+
+			if (tipo != 0) {
+				String extension = "";
+				switch (tipo) {
+				case 0:
+					break;
+				case 1:
+					extension = "img/";
+					adjunto = ".jpeg";
+					break;
+				case 2:
+					extension = "files/";
+					break;
+				case 3:
+					extension = "music/";
+					break;
+				}
+				ruta = "dataGuardada/" + extension + autor+"_"+p.getName()+adjunto;
+			}
+			
+			int postId = p.getId();
+			String name = p.getName();
+
+			XML newPost = us.addChild("post");
+
+			newPost.setString("autor", autor);
+			newPost.setString("msg", msg);
+			newPost.setString("ruta", ruta);
+			newPost.setString("name", name);
+			newPost.setInt("postId", postId);
+			newPost.setInt("tipo", tipo);
+
+			posts.add(new Post(autor, msg, name, tipo, postId, p.getFile()));
+
 		} else if (o instanceof Usuario) {
 
 			XML us = data.getChild("usuarios");
@@ -118,10 +163,52 @@ public class DatabaseManager {
 	}
 
 	public ArrayList<Usuario> getUsuarios() {
+		XML usuarios = data.getChild("usuarios");
+		XML[] users_all = usuarios.getChildren("user");
+
+		if (users.isEmpty()) {
+			for (int i = 0; i < users_all.length; i++) {
+				String name = users_all[i].getString("apodo");
+				String pass = users_all[i].getString("pass");
+				String mail = users_all[i].getString("correo");
+				users.add(new Usuario(name, pass, mail));
+			}
+		}
 		return users;
 	}
 
 	public ArrayList<Post> getPosts() {
+		XML posteados = data.getChild("posts");
+		XML[] post_all = posteados.getChildren("post");
+
+		if (posts.isEmpty()) {
+			for (int i = 0; i < post_all.length; i++) {
+				String autor = post_all[i].getString("autor");
+				String msg = post_all[i].getString("msg");
+				String name = post_all[i].getString("name");
+				int tipo = post_all[i].getInt("tipo");
+				int postId = post_all[i].getInt("postId");
+
+				String ruta = post_all[i].getString("ruta");
+				byte[] filePost = new byte[0];
+				if (tipo != 0) {
+					if (ruta != null) {
+						try {
+							File archivo = new File(ruta);
+							FileInputStream inFile = new FileInputStream(archivo);
+							byte[] buf = new byte[inFile.available()];
+							inFile.read(buf);
+							inFile.close();
+							filePost = buf;
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+
+				posts.add(new Post(autor, msg, name, tipo, postId, filePost));
+			}
+		}
 		return posts;
 	}
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<information>
+  <usuarios>
+    <user apodo="korneas" correo="cajomo0311@gmail.com" pass="damn"/>
+    <user apodo="KrMen" correo="jaimeal.99@hotmail.com" pass="krmen"/>
+  </usuarios>
+  <comentarios/>
+  <waves/>
+  <posts>
+    <post autor="korneas" msg="Mi primera imagencita" name="08-may.-20174" postId="4" ruta="dataGuardada/img/korneas_08-may.-20170.jpeg" tipo="1"/>
+  </posts>
+</information>

@@ -11,15 +11,18 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Observable;
 import java.util.Observer;
 
 import serial.Confirmacion;
+import serial.Post;
 import serial.Usuario;
 import serial.Validacion;
 
-public class Control implements Runnable {
+public class Control extends Observable implements Runnable {
 	private Socket s;
 	private Observer boss;
+	private boolean life = true;
 	private int id;
 
 	public Control(Socket s, Observer boss, int id) {
@@ -31,13 +34,16 @@ public class Control implements Runnable {
 
 	@Override
 	public void run() {
-		while (true) {
+		while (life) {
 			try {
 				recibir();
-				recibirArchivos();
 				Thread.sleep(100);
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.out.println("Problema con cliente " + id);
+				setChanged();
+				boss.update(this, "finConexion");
+				life = false;
+				clearChanged();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {
@@ -49,11 +55,14 @@ public class Control implements Runnable {
 	public void enviar(Object o) throws IOException {
 		ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
 		out.writeObject(o);
-		System.out.println("Cliente: Se envio: " + o.getClass());
+		System.out.println("Servidor: Se envio: " + o.getClass());
 	}
 
-	public void actualizar() {
-
+	public void actualizar() throws IOException {
+		ArrayList<Post> post_all = DatabaseManager.getInstance().getPosts();
+		ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+		out.writeObject(post_all);
+		System.out.println("Servidor: Se actualizo el home | Numero de posts: "+post_all.size());
 	}
 
 	private void clasificar(Object o) {
@@ -69,14 +78,15 @@ public class Control implements Runnable {
 			}
 
 			if (totalUsers == users.size()) {
+				DatabaseManager.getInstance().agregar(u);
 				try {
-					enviar(new Validacion(false, "registro"));
+					enviar(new Validacion(true, "registro"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			} else {
 				try {
-					enviar(new Validacion(true, "registro"));
+					enviar(new Validacion(false, "registro"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -107,6 +117,30 @@ public class Control implements Runnable {
 					e.printStackTrace();
 				}
 			}
+		} else if (o instanceof Post) {
+			Post p = (Post) o;
+			DatabaseManager.getInstance().agregar(p);
+
+			if (p.getTipo() != 0) {
+				recibirArchivos(p);
+			}
+
+			try {
+				enviar(new Validacion(true, "posteado"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else if(o instanceof Validacion){
+			Validacion v = (Validacion) o;
+			
+			if(v.isCheck()){
+				if(v.getType().contains("actualizar"));
+				try {
+					actualizar();
+				} catch (IOException e) {
+					System.out.println("No se pudo enviar actualizacion");
+				}
+			}
 		}
 	}
 
@@ -114,72 +148,41 @@ public class Control implements Runnable {
 		ObjectInputStream in = new ObjectInputStream(s.getInputStream());
 		Object recibido = in.readObject();
 		clasificar(recibido);
+		System.out.println("Cliente: Llego"+recibido.getClass());
 		boss.update(null, recibido);
 	}
 
-	private byte[] cargarArchivo(File fl) throws IOException {
-		FileInputStream in = new FileInputStream(fl);
-		byte[] buffer = new byte[in.available()];
-		in.read(buffer);
-		in.close();
-		return null;
-	}
+	private void recibirArchivos(Post in) {
+		String nombre = in.getAutor() + "_" + in.getName();
+		byte[] buffer = in.getFile();
 
-	private File[] cargarMusica() {
-		File audioDoc = new File("data/audio");
-		File[] audioArray = audioDoc.listFiles();
-
-		if (audioArray != null) {
-			System.out.println("Archivos de audio encontrados: " + audioArray.length);
-		} else {
-			System.out.println("No hay archivos de audio actualmente");
-		}
-		return audioArray;
-	}
-
-	private File[] cargarImagen() {
-		File imageDoc = new File("data/audio");
-		File[] imageArray = imageDoc.listFiles();
-
-		if (imageArray != null) {
-			System.out.println("Archivos de imagen encontrados: " + imageArray.length);
-		} else {
-			System.out.println("No hay archivos de imagen actualmente");
-		}
-		return imageArray;
-	}
-
-	private File[] cargarArchivos() {
-		File archiveDoc = new File("data/audio");
-		File[] archiveArray = archiveDoc.listFiles();
-
-		if (archiveArray != null) {
-			System.out.println("Archivos encontrados: " + archiveArray.length);
-		} else {
-			System.out.println("No hay archivos actualmente");
-		}
-		return archiveArray;
-	}
-
-	private void recibirArchivos() throws IOException {
-		DataInputStream in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-		int numArchivos = in.readInt();
-		for (int i = 0; i < numArchivos; i++) {
-			String nombre = in.readUTF();
-			int size = in.readInt();
-			byte[] buffer = new byte[size];
-			int j = 0;
-			while (j < size) {
-				buffer[j] = in.readByte();
-				j++;
-			}
-			guardarArchivo(nombre, buffer);
-		}
-	}
-
-	private void guardarArchivo(String name, byte[] buffer) throws IOException {
 		try {
-			File saveDoc = new File("dataGuardada/" + name);
+			guardarArchivo(nombre, buffer, in.getTipo());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void guardarArchivo(String name, byte[] buffer, int tipo) throws IOException {
+		String extension = "";
+		String adjunto = "";
+		switch (tipo) {
+		case 0:
+			break;
+		case 1:
+			extension = "img/";
+			adjunto = ".jpeg";
+			break;
+		case 2:
+			extension = "files/";
+			break;
+		case 3:
+			extension = "music/";
+			break;
+		}
+		System.out.println("Tengo data para guardarla en " + extension);
+		try {
+			File saveDoc = new File("dataGuardada/" + extension + name + adjunto);
 			saveDoc.createNewFile();
 			FileOutputStream out = new FileOutputStream(saveDoc);
 			out.write(buffer);

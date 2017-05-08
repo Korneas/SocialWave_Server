@@ -1,5 +1,7 @@
 package sw_server;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
@@ -27,6 +29,12 @@ public class Logica implements Observer {
 		server = new Servidor();
 		new Thread(server).start();
 		server.addObserver(this);
+		
+		try {
+			System.out.println(InetAddress.getLocalHost().getHostAddress());
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
 
 		// fuente = app.createFont("Montserrat.ttf", 40);
 

@@ -1,58 +1,67 @@
 package serial;
 
-public class Post {
+import java.io.Serializable;
 
-	private int postId, waves;
-	private String tipo, titulo, autor;
-	private byte[] archivo;
+public class Post implements Serializable {
 
-	public Post(int postId, int waves, String tipo, String titulo, byte[] archivo) {
-		super();
-		this.postId = postId;
-		this.waves = waves;
-		this.tipo = tipo;
-		this.titulo = titulo;
-		this.archivo = archivo;
-	}
+    private String autor, msg, name;
+    private int tipo, id;
+    private byte[] file;
 
-	public int getPostId() {
-		return postId;
-	}
+    public Post(String autor, String msg, String name, int tipo, int id, byte[] file) {
+        this.autor = autor;
+        this.msg = msg;
+        this.name = name;
+        this.tipo = tipo;
+        this.id = id;
+        this.file = file;
+    }
 
-	public void setPostId(int postId) {
-		this.postId = postId;
-	}
+    public String getAutor() {
+        return autor;
+    }
 
-	public int getWaves() {
-		return waves;
-	}
+    public void setAutor(String autor) {
+        this.autor = autor;
+    }
 
-	public void setWaves(int waves) {
-		this.waves = waves;
-	}
+    public String getMsg() {
+        return msg;
+    }
 
-	public String getTipo() {
-		return tipo;
-	}
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
 
-	public void setTipo(String tipo) {
-		this.tipo = tipo;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getTitulo() {
-		return titulo;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setTitulo(String titulo) {
-		this.titulo = titulo;
-	}
+    public int getTipo() {
+        return tipo;
+    }
 
-	public byte[] getArchivo() {
-		return archivo;
-	}
+    public void setTipo(int tipo) {
+        this.tipo = tipo;
+    }
 
-	public void setArchivo(byte[] archivo) {
-		this.archivo = archivo;
-	}
+    public int getId() {
+        return id;
+    }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public byte[] getFile() {
+        return file;
+    }
+
+    public void setFile(byte[] file) {
+        this.file = file;
+    }
 }
